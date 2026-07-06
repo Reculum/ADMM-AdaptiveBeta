@@ -1,12 +1,14 @@
 
-from __init__ import *
-from VariationalModel import VariationalModelClass
+
+from VariationalModel import *
 
 
 class TVL2_1DClass(VariationalModelClass):
 
     #L(x, y, l)_{beta} = phi(x, y) + <l, (D, -Id) @ (x, y)> + beta/2 | (D, -Id) @ (x, y)|^{2}
     #phi(x, y) = (mu / 2) * |A @ x - b|_{2}^{2} + |y|_{1} 
+
+    #n is the dimension of D in M: (n-1) x n
 
     A = None
     D = None
@@ -15,9 +17,6 @@ class TVL2_1DClass(VariationalModelClass):
     Atb = None
     b = None
 
-    n = 0
-    q = 0
-
     def __init__(self, A, b, mu):
 
         _, self.n = np.shape(A)
@@ -25,6 +24,7 @@ class TVL2_1DClass(VariationalModelClass):
         uni = np.ones(shape=(self.n,))
         meno_uni = -1 * np.ones(shape=(self.n - 1, ))
 
+        self.A = A
         self.D = (np.diag(uni, 0) + np.diag(meno_uni, 1))[:(self.n-1), :]
 
         self.DtD = (self.D).T @ self.D
@@ -34,7 +34,7 @@ class TVL2_1DClass(VariationalModelClass):
         fid = lambda x: (mu / 2) * np.linalg.norm( A @ x - b )**2
         reg = lambda x: np.linalg.norm(x[:len(x)-1] - x[1:], ord=1)
         proxstep = lambda x, y, l, beta: self.__proxStep__(x, y, l, beta)
-        dualstep = lambda x, y, l, beta: self.__lambdaStep__(l, x, y, beta)
+        dualstep = lambda x, y, l, beta: self.__lambdaStep__(x, y, l, beta)
 
         self.setFidelity(fid)
         self.setRegularizer(reg)
@@ -47,7 +47,7 @@ class TVL2_1DClass(VariationalModelClass):
     def __proX__(self, y, l, beta):
             
         tempA = self.DtD + (self.mu / beta) * self.AtA
-        tempB = (self.D).T (y - (1/beta) * l) + (self.mu / beta) * self.Atb
+        tempB = (self.D).T @ (y - (1/beta) * l) + (self.mu / beta) * self.Atb
 
         upper, lower = la.cho_factor(tempA, lower=True)
 
@@ -60,7 +60,7 @@ class TVL2_1DClass(VariationalModelClass):
         
         OneOverBeta = (1/beta) * np.ones(shape=(qSize,))
 
-        return np.sign(q) * np.max(np.abs(q) - OneOverBeta, np.zeros(shape=(qSize,)))
+        return np.sign(q) * np.maximum(np.abs(q) - OneOverBeta, np.zeros(shape=(qSize,)))
     
     def __proxStep__(self, x_k, y_k, l, beta):
 
@@ -70,7 +70,7 @@ class TVL2_1DClass(VariationalModelClass):
         return x_k_1, y_k_1
     
 
-    def __lambdaStep__(self, l, x_k, y_k, beta):
+    def __lambdaStep__(self, x_k, y_k, l, beta):
 
         return l + beta * (self.D @ x_k - y_k)
 

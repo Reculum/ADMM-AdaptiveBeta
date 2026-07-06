@@ -1,5 +1,6 @@
 
-from __init__ import *
+import numpy as np
+import scipy.linalg as la
 
 
 class VariationalModelClass():
@@ -8,8 +9,9 @@ class VariationalModelClass():
     regularizer = lambda x: None
     mu = None
 
-    primalStep = lambda x: None
-    dualStep = lambda x: None        
+    primalStep = lambda x, y, l, beta: None
+    dualStep = lambda x, y, l, beta: None
+
 
     def setFidelity(self, f):
         self.fidelity = f
@@ -27,6 +29,6 @@ class VariationalModelClass():
         self.dualStep = f
     
     def __eval__(self, x):        
-        return self.regularizer(x) + (self.mu / 2) * self.fidelity
+        return self.regularizer(x) + (self.mu / 2) * self.fidelity(x)
         
     

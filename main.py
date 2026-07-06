@@ -1,7 +1,18 @@
 
-from models import VariationalModel
+from models import TVL2_1D
+from ADMMs import StdADMM
+from signal_class import *
+
+import matplotlib.pyplot as plt
+
+np.random.seed(24102001)
 
 
-a = VariationalModel.A()
+PwSignal = signal(1024)
+PwSignal.generate_cartoon_sign(10)
 
-print(a)
+
+plt.plt(PwSignal.get_image())
+plt.show()
+
+
