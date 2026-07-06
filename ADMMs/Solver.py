@@ -13,7 +13,7 @@ class SolverClass():
 	betak = None
 
 
-	def __init__(self, varMod : VariationalModelClass, x0 : np.ndarray, y0 : np.ndarray, beta0 : float, l0 : np.ndarray):
+	def __init__(self, varMod : VariationalModelClass, x0 : np.ndarray, y0 : np.ndarray, l0 : np.ndarray, beta0 : float):
 
 		self.betak = beta0
 		self.lk = l0

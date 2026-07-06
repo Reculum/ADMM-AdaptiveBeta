@@ -1,6 +1,6 @@
 
 
-from VariationalModel import *
+from models.VariationalModel import *
 
 
 class TVL2_1DClass(VariationalModelClass):
@@ -31,7 +31,7 @@ class TVL2_1DClass(VariationalModelClass):
         self.AtA = (self.A).T @ self.A
         self.Atb = (self.A).T @ b
 
-        fid = lambda x: (mu / 2) * np.linalg.norm( A @ x - b )**2
+        fid = lambda x: np.linalg.norm( A @ x - b )**2
         reg = lambda x: np.linalg.norm(x[:len(x)-1] - x[1:], ord=1)
         proxstep = lambda x, y, l, beta: self.__proxStep__(x, y, l, beta)
         dualstep = lambda x, y, l, beta: self.__lambdaStep__(x, y, l, beta)

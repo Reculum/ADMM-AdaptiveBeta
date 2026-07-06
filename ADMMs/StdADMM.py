@@ -1,5 +1,5 @@
 
-from Solver import *
+from ADMMs.Solver import *
 
 
 
