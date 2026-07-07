@@ -10,12 +10,13 @@ class TVL2_1DClass(VariationalModelClass):
 
     #n is the dimension of D in M: (n-1) x n
 
-    A = None
-    D = None
-    AtA = None
-    DtD = None
-    Atb = None
-    b = None
+    A : np.ndarray
+    D : np.ndarray
+    AtA : np.ndarray
+    DtD : np.ndarray
+    Atb : np.ndarray
+    b : np.ndarray
+    n : int 
 
     def __init__(self, A, b, mu):
 

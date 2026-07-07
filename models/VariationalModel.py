@@ -1,16 +1,17 @@
 
 import numpy as np
 import scipy.linalg as la
+from typing import Callable, Tuple
 
 
 class VariationalModelClass():
 
-    fidelity = lambda x: None
-    regularizer = lambda x: None
-    mu = None
+    fidelity : Callable[[np.ndarray], float]
+    regularizer : Callable[[np.ndarray], float]
+    mu : float
 
-    primalStep = lambda x, y, l, beta: None
-    dualStep = lambda x, y, l, beta: None
+    primalStep : Callable[[np.ndarray, np.ndarray, np.ndarray, float], Tuple[np.ndarray, np.ndarray]]
+    dualStep : Callable[[np.ndarray, np.ndarray, np.ndarray, float], np.ndarray]
 
 
     def setFidelity(self, f):

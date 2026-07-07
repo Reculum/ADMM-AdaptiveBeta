@@ -1,16 +1,17 @@
 
 from models.VariationalModel import *
+from typing import Callable, Tuple
 
 
 class SolverClass():
 
 	VarModel : VariationalModelClass
-	IterationStep : lambda x, y, l, beta: None
+	IterationStep : Callable[[np.ndarray, np.ndarray, np.ndarray, float], Tuple[np.ndarray, np.ndarray, np.ndarray, float]]
 
-	xk = None
-	yk = None
-	lk = None
-	betak = None
+	xk : np.ndarray
+	yk : np.ndarray
+	lk : np.ndarray
+	betak :float
 
 
 	def __init__(self, varMod : VariationalModelClass, x0 : np.ndarray, y0 : np.ndarray, l0 : np.ndarray, beta0 : float):
@@ -23,5 +24,5 @@ class SolverClass():
 		self.VarModel = varMod
 
 	
-	def setIterationStep( self, f = (lambda x, y, l, beta: None) ):
+	def setIterationStep( self, f = (lambda x, y, l, beta: (None, None, None, 0)) ):
 		self.IterationStep = f

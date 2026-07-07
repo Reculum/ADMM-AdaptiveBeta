@@ -17,9 +17,7 @@ RndSignal.generate_GG_realization(0, sigma, 2)
 
 diag = 0.5 * np.ones(shape=(n,))
 offDiag = 0.25 * np.ones(shape=(n - 1, ))
-A = np.diag(diag, 0) + np.diag(offDiag, 1) + np.diag(offDiag, -1) 
-
-
+A = np.diag(diag, 0) + np.diag(offDiag, 1) + np.diag(offDiag, -1)
 
 
 xTrue = PwSignal.get_image()
@@ -50,10 +48,16 @@ for iter in range(0, 1000):
 	betak = betak_1
 
 plt.figure(1)
+plt.title("Original")
+plt.grid()
 plt.plot(b)
 
 plt.figure(2)
+plt.title("Reconstruction")
+plt.grid()
 plt.plot(xk)
+
+
 plt.show()
 
 
