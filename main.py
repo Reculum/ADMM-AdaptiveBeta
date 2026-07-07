@@ -10,7 +10,7 @@ n = 1024
 
 PwSignal = signal(n)
 RndSignal = signal(n)
-sigma = 0
+sigma = 0.01
 
 PwSignal.generate_cartoon_sign(2, 100)
 RndSignal.generate_GG_realization(0, sigma, 2)
@@ -24,22 +24,24 @@ A = np.diag(diag, 0) + np.diag(offDiag, 1) + np.diag(offDiag, -1)
 
 xTrue = PwSignal.get_image()
 b = (A @ xTrue) + RndSignal.get_image()
-mu = 0.5
-
-xk = np.random.randn(n)
-yk = np.random.randn(n-1)
-betak = 0.1
-lk = np.random.randn(n-1)
+mu = 2
 
 VarModel = TVL2_1D.TVL2_1DClass(A, b, mu)
+
+xk = np.copy(b)
+yk = VarModel.D @ xk
+betak = 1
+lk = np.zeros(n - 1)
+
 StdAdmmSolver = StdADMM.StdADMMClass(VarModel, xk, yk, lk, betak)
 
 
-for iter in range(0, 100):
+for iter in range(0, 1000):
 
 	xk_1, yk_1, lk_1, betak_1 = StdAdmmSolver.IterationStep(xk, yk, lk, betak)
 
-	print(f"primal residue: {np.linalg.norm(VarModel.D @ xk_1 - yk_1)}" )
+	print(f"iter: {iter}/1000")
+	print(f"primal residue: {VarModel.fidelity(xk_1)}" )
 	print(f"dual residue: {np.linalg.norm( betak_1 * VarModel.D.T @ (yk - yk_1))}")
 
 	xk = xk_1
