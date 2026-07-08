@@ -27,6 +27,7 @@ class TVL2_1DClass(VariationalModelClass):
 
         self.A = A
         self.D = (np.diag(uni, 0) + np.diag(meno_uni, 1))[:(self.n-1), :]
+        self.b = b
 
         self.DtD = (self.D).T @ self.D
         self.AtA = (self.A).T @ self.A

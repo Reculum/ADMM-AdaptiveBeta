@@ -1,6 +1,5 @@
-
 from models import TVL2_1D
-from ADMMs import StdADMM
+from ADMMs import MyTVL21DSolver
 from signal_class import *
 
 np.random.seed(24102001)
@@ -31,18 +30,18 @@ yk = VarModel.D @ xk
 betak = 1
 lk = np.zeros(n - 1)
 
-StdAdmmSolver = StdADMM.StdADMMClass(VarModel, xk, yk, lk, betak)
+MySolver = MyTVL21DSolver.My_TVL21D_SolverClass(VarModel, xk, yk, lk, betak)
 
-iters = 200
-
+iters = 20
 
 for iter in range(0, iters):
 
-	xk_1, yk_1, lk_1, betak_1 = StdAdmmSolver.CallIterationStep(xk, yk, lk, betak)
+	xk_1, yk_1, lk_1, betak_1 = MySolver.CallIterationStep(xk, yk, lk, betak)
 
 	print(f"iter: {iter}/{iters}")
+	print(f"betak: {betak}")
 	print(f"primal residue: {np.linalg.norm(VarModel.D @ xk_1 - yk_1)}" )
-	print(f"dual residue: {np.linalg.norm( betak_1 * VarModel.D.T @ (yk - yk_1))}")
+	print(f"dual residue: {np.linalg.norm( betak * VarModel.D.T @ (yk - yk_1))}")
 
 	xk = xk_1
 	yk = yk_1
@@ -61,5 +60,3 @@ plt.plot(xk)
 
 
 plt.show()
-
-

@@ -7,7 +7,13 @@ class My_TVL21D_SolverClass(SolverClass):
 	def __init__(self, varMod : TVL2_1DClass, x0, y0, l0, beta0):
 
 		super().__init__(varMod, x0, y0, l0, beta0)
-		self.IterationStep = self.__StdStep__
+
+		self.A = varMod.A
+		self.D = varMod.D
+		self.b = varMod.b
+		self.mu = varMod.mu
+
+		self.IterationStep = self.__MyStep__
 
 
 	def __MyStep__(self, xk, yk, lk, betak):
@@ -20,20 +26,19 @@ class My_TVL21D_SolverClass(SolverClass):
 
 	def __AugmLag__(self, varX, varY):
 
-			fid = self.VarModel.fidelity(varX)
-			reg = self.VarModel.regularizer(varY)
-			res = self.VarModel.D @ varX - varY
+			fid = cvxpy.sum_squares(self.A @ varX - self.b)
+			reg = cvxpy.norm1(varY)
+			res = cvxpy.matmul(self.D, varX) - varY
+			prodScal = cvxpy.scalar_product(self.lk, res)
 
-			prodScal = np.dot(self.lk, res)
-
-			return (self.VarModel.mu / 2) * fid + reg + prodScal + (self.betak / 2) * np.linalg.norm(res)**2	
+			return (self.mu / 2) * fid + reg + prodScal + (self.betak / 2) * cvxpy.sum_squares(res)
 
 	def __MnonTangere__(self, x0 :np.ndarray, y0 : np.ndarray, l0 : np.ndarray, beta0):
 
 		tol = 1e-6
 
-		nX = x0.size()
-		nY = y0.size()
+		nX = x0.size
+		nY = y0.size
 
 		D = self.VarModel.D
 
@@ -48,7 +53,7 @@ class My_TVL21D_SolverClass(SolverClass):
 
 			L0 = self.__AugmLag__(cvxpy.Constant(x0), cvxpy.Constant(y0))
 			problem = cvxpy.Problem(cvxpy.Minimize(g), [self.__AugmLag__(x, y) <= L0])
-			problem.solve(solver=cvxpy.ECOS, verbose=False)
+			problem.solve(solver=cvxpy.CLARABEL, verbose=False)
 
 			xk = x.value
 			yk = y.value
@@ -63,10 +68,10 @@ class My_TVL21D_SolverClass(SolverClass):
 
 	def __backtrackBeta__(self, x0, y0, beta0):
 
-		tol = 1e-6
+		tol = 1e-4
 
-		nX = x0.size()
-		nY = y0.size()
+		nX = x0.size
+		nY = y0.size
 
 		D = self.VarModel.D
 
@@ -75,23 +80,21 @@ class My_TVL21D_SolverClass(SolverClass):
 
 		epsilon = D @ x0 - y0
 
-		xk = x0
-		yk = y0
-		rk = D @ xk - yk
-
 		betaLower = 0
-		betaUpper = np.inf()
+		betaUpper = np.inf
 		beta = beta0
 
-		while (np.dot(epsilon, rk) >= tol):
+		#initial iter
 
-			f = self.__AugmLag__(x, y) + beta * cvxpy.scalar_product(epsilon, D @ x - y)
-			problem = cvxpy.Problem(cvxpy.Minimize(f))
-			problem.solve(solver=cvxpy.ECOS, verbose=False)
+		f = self.__AugmLag__(x, y) + beta * cvxpy.scalar_product(epsilon, D @ x - y)
+		problem = cvxpy.Problem(cvxpy.Minimize(f))
+		problem.solve(solver=cvxpy.CLARABEL, verbose=False)
 
-			xk = x.value
-			yk = y.value
-			rk = D @ xk - yk
+		xk = x.value
+		yk = y.value
+		rk = D @ xk - yk
+
+		while (np.abs(np.dot(epsilon, rk)) >= tol):
 
 			if (np.dot(epsilon, rk) > 0):
 				betaLower = beta
@@ -101,6 +104,14 @@ class My_TVL21D_SolverClass(SolverClass):
 				beta = (betaUpper + betaLower)/2
 			else:
 				beta *= 2
+
+			f = self.__AugmLag__(x, y) + beta * cvxpy.scalar_product(epsilon, D @ x - y)
+			problem = cvxpy.Problem(cvxpy.Minimize(f))
+			problem.solve(solver=cvxpy.CLARABEL, verbose=False)
+
+			xk = x.value
+			yk = y.value
+			rk = D @ xk - yk
 		
 
 		return beta

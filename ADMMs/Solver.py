@@ -27,3 +27,15 @@ class SolverClass():
 	
 	def setIterationStep( self, f = (lambda x, y, l, beta: (None, None, None, 0)) ):
 		self.IterationStep = f
+
+	
+	def CallIterationStep( self, x, y, l, beta):
+
+		xk1, yk1, lk1, betak1 = self.IterationStep(x, y, l, beta)
+
+		self.xk = xk1
+		self.yk = yk1
+		self.lk = lk1
+		self.betak = betak1
+
+		return xk1, yk1, lk1, betak1
