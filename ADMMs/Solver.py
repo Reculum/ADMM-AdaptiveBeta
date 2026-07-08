@@ -1,5 +1,6 @@
 
 from models.VariationalModel import *
+import cvxpy
 from typing import Callable, Tuple
 
 
