@@ -10,28 +10,29 @@ class TVL2_1DClass(VariationalModelClass):
 
     #n is the dimension of D in M: (n-1) x n
 
-    A : np.ndarray
     D : np.ndarray
+    A : np.ndarray
     AtA : np.ndarray
     DtD : np.ndarray
     Atb : np.ndarray
-    b : np.ndarray
     n : int 
 
     def __init__(self, A, b, mu):
 
         _, self.n = np.shape(A)
+        self.A = A
 
         uni = np.ones(shape=(self.n,))
         meno_uni = -1 * np.ones(shape=(self.n - 1, ))
+        self.D = -(np.diag(uni, 0) + np.diag(meno_uni, 1))[:(self.n-1), :]
 
-        self.A = A
-        self.D = (np.diag(uni, 0) + np.diag(meno_uni, 1))[:(self.n-1), :]
-        self.b = b
+        self.setXmatrixConstr(self.D)
+        self.setYmatrixConstr(-np.eye(self.n - 1))
+        self.setConstrObj(b)
 
         self.DtD = (self.D).T @ self.D
         self.AtA = (self.A).T @ self.A
-        self.Atb = (self.A).T @ b
+        self.Atb = (self.A).T @ self.b
 
         fid = lambda x: np.linalg.norm( A @ x - b )**2
         reg = lambda x: np.linalg.norm(x[:len(x)-1] - x[1:], ord=1)
@@ -40,7 +41,7 @@ class TVL2_1DClass(VariationalModelClass):
 
         self.setFidelity(fid)
         self.setRegularizer(reg)
-        self.setMu(mu)
+        self.setMu(mu)        
 
         self.setPrimalStep(proxstep)
         self.setDualStep(dualstep)

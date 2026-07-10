@@ -50,7 +50,7 @@ for iter in range(0, iters):
 	betak = betak_1
 
 plt.figure(1)
-plt.title("Original")
+plt.title("Corrupted")
 plt.grid()
 plt.plot(b)
 
@@ -58,6 +58,11 @@ plt.figure(2)
 plt.title("Reconstruction")
 plt.grid()
 plt.plot(xk)
+
+plt.figure(3)
+plt.title("Original")
+plt.grid()
+plt.plot(xTrue)
 
 
 plt.show()

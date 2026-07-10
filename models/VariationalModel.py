@@ -10,9 +10,22 @@ class VariationalModelClass():
     regularizer : Callable[[np.ndarray], float]
     mu : float
 
+    P : np.ndarray
+    Q : np.ndarray
+    b : np.ndarray
+    n : np.ndarray
+
     primalStep : Callable[[np.ndarray, np.ndarray, np.ndarray, float], Tuple[np.ndarray, np.ndarray]]
     dualStep : Callable[[np.ndarray, np.ndarray, np.ndarray, float], np.ndarray]
 
+    def setXmatrixConstr(self, P):
+        self.P = P
+
+    def setYmatrixConstr(self, Q):
+        self.Q = Q
+    
+    def setConstrObj(self, b):
+        self.b = b
 
     def setFidelity(self, f):
         self.fidelity = f

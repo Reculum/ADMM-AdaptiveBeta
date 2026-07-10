@@ -29,7 +29,7 @@ class SolverClass():
 		self.IterationStep = f
 
 	
-	def CallIterationStep( self, x, y, l, beta):
+	def CallIterationStep( self, x, y, l, beta ):
 
 		xk1, yk1, lk1, betak1 = self.IterationStep(x, y, l, beta)
 

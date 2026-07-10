@@ -1,5 +1,5 @@
 from models import TVL2_1D
-from ADMMs import MyTVL21DSolver
+from ADMMs import SpectralSolver
 from signal_class import *
 
 np.random.seed(24102001)
@@ -30,24 +30,18 @@ yk = VarModel.D @ xk
 betak = 1
 lk = np.zeros(n - 1)
 
-MySolver = MyTVL21DSolver.My_TVL21D_SolverClass(VarModel, xk, yk, lk, betak)
+SpectralAdmmSolver = SpectralSolver.SpectralSolverClass(VarModel, xk, yk, lk, betak)
 
-iters = 20
+iters = 200
+
 
 for iter in range(0, iters):
 
-	xk_1, yk_1, lk_1, betak_1 = MySolver.CallIterationStep(xk, yk, lk, betak)
+	xk_1, yk_1, lk_1, betak_1 = SpectralAdmmSolver.CallIterationStep(xk, yk, lk, betak)
 
 	print(f"iter: {iter}/{iters}")
-	print(f"betak: {betak_1}")
 	print(f"primal residue: {np.linalg.norm(VarModel.D @ xk_1 - yk_1)}" )
-	print(f"dual residue: {
-						   np.abs(
-							   (VarModel.mu / 2) * (VarModel.fidelity(xk_1) - VarModel.fidelity(xk) ) + \
-							   VarModel.regularizer(yk_1) - VarModel.regularizer(yk)							
-								)
-						  }"
-		)
+	print(f"dual residue: {np.linalg.norm( betak * VarModel.D.T @ (yk - yk_1))}")
 
 	xk = xk_1
 	yk = yk_1
