@@ -12,6 +12,7 @@ class TVL2_1DClass(VariationalModelClass):
 
     D : np.ndarray
     A : np.ndarray
+    b : np.ndarray
     AtA : np.ndarray
     DtD : np.ndarray
     Atb : np.ndarray
@@ -21,6 +22,7 @@ class TVL2_1DClass(VariationalModelClass):
 
         _, self.n = np.shape(A)
         self.A = A
+        self.b = b
 
         uni = np.ones(shape=(self.n,))
         meno_uni = -1 * np.ones(shape=(self.n - 1, ))
@@ -28,7 +30,7 @@ class TVL2_1DClass(VariationalModelClass):
 
         self.setXmatrixConstr(self.D)
         self.setYmatrixConstr(-np.eye(self.n - 1))
-        self.setConstrObj(b)
+        self.setConstrObj(np.zeros(self.n - 1))
 
         self.DtD = (self.D).T @ self.D
         self.AtA = (self.A).T @ self.A

@@ -19,10 +19,10 @@ class My_TVL21D_SolverClass(SolverClass):
 	def __MyStep__(self, xk, yk, lk, betak):
 
 		xk1, yk1 = self.__MnonTangere__(xk, yk, lk, betak)
-		betak1 = self.__backtrackBeta__(xk1, yk1, betak)
+		xk2, yk2, betak1 = self.__backtrackBeta__(xk1, yk1, betak)
 		lk1 = lk + betak1 * (self.VarModel.D @ xk1 - yk1)
 
-		return xk1, yk1, lk1, betak1
+		return xk2, yk2, lk1, betak1
 
 	def __AugmLag__(self, varX, varY):
 
@@ -36,6 +36,7 @@ class My_TVL21D_SolverClass(SolverClass):
 	def __MnonTangere__(self, x0 :np.ndarray, y0 : np.ndarray, l0 : np.ndarray, beta0):
 
 		tol = 1e-6
+		tolStep = 1e-3
 
 		nX = x0.size
 		nY = y0.size
@@ -60,7 +61,14 @@ class My_TVL21D_SolverClass(SolverClass):
 
 			if (np.linalg.norm(D @ xk - yk) > tol): PointFound = True
 			else:
-				x0, y0 = self.VarModel.primalStep(x0, y0, l0, beta0)
+				
+				x1, y1 = self.VarModel.primalStep(x0, y0, l0, beta0)
+
+				if (np.linalg.norm(np.concat([x1, y1]) - np.concat([x0, y0]))) <= tolStep:
+					return x1, y1
+				
+				x0 = x1
+				y0 = y1
 
 		
 		return xk, yk
@@ -68,7 +76,7 @@ class My_TVL21D_SolverClass(SolverClass):
 
 	def __backtrackBeta__(self, x0, y0, beta0):
 
-		tol = 1e-4
+		tol = 1e-6
 
 		nX = x0.size
 		nY = y0.size
@@ -114,7 +122,7 @@ class My_TVL21D_SolverClass(SolverClass):
 			rk = D @ xk - yk
 		
 
-		return beta
+		return xk, yk, beta
 
 
 

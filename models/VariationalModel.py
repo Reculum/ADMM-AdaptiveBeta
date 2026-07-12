@@ -12,7 +12,7 @@ class VariationalModelClass():
 
     P : np.ndarray
     Q : np.ndarray
-    b : np.ndarray
+    c : np.ndarray
     n : np.ndarray
 
     primalStep : Callable[[np.ndarray, np.ndarray, np.ndarray, float], Tuple[np.ndarray, np.ndarray]]
@@ -24,8 +24,8 @@ class VariationalModelClass():
     def setYmatrixConstr(self, Q):
         self.Q = Q
     
-    def setConstrObj(self, b):
-        self.b = b
+    def setConstrObj(self, c):
+        self.c = c
 
     def setFidelity(self, f):
         self.fidelity = f
