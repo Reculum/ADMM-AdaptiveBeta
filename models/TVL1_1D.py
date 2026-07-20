@@ -1,9 +1,8 @@
-
-
 from models.VariationalModel import *
+import cvxpy as cv
 
 
-class TVL2_1DClass(VariationalModelClass):
+class TVL1_1DClass(VariationalModelClass):
 
     #L(x, y, l)_{beta} = phi(x, y) + <l, (D, -Id) @ (x, y)> + beta/2 | (D, -Id) @ (x, y)|^{2}
     #phi(x, y) = (mu / 2) * |A @ x - b|_{2}^{2} + |y|_{1} 
@@ -38,7 +37,7 @@ class TVL2_1DClass(VariationalModelClass):
         self.AtA = (self.A).T @ self.A
         self.Atb = (self.A).T @ self.b
 
-        fid = lambda x: np.linalg.norm( A @ x - b )**2
+        fid = lambda x: np.linalg.norm( A @ x - b, ord = 1)
         reg = lambda x: np.linalg.norm(self.D @ x, ord=1)
         proxstep = lambda x, y, l, beta: self.__proxStep__(x, y, l, beta)
         dualstep = lambda x, y, l, beta: self.__lambdaStep__(x, y, l, beta)
@@ -52,22 +51,26 @@ class TVL2_1DClass(VariationalModelClass):
 
     
     def __proX__(self, y, l, beta):
-            
-        tempA = self.DtD + (self.mu / beta) * self.AtA
-        tempB = (self.D).T @ (y - (1/beta) * l) + (self.mu / beta) * self.Atb
 
-        upper, lower = la.cho_factor(tempA, lower=True)
+        x = cv.Variable(self.n)
+        objective = cv.Minimize((self.mu / 2) * cv.norm1(self.A @ x - self.c) +
+                                cv.scalar_product(l, self.D @ x - y) + 
+                                (beta/2) * cv.sum_squares(self.D @ x - y))
+        prob = cv.Problem(objective)
+        prob.solve(solver=cv.CLARABEL)
 
-        return la.cho_solve( (upper, lower), tempB )
+        return x.value            
+        
 
     def __proY__(self, x, l, beta):
 
         q = (self.D @ x) + (1/beta) * l
         qSize = np.size(q)
         
-        OneOverBeta = (1/beta) * np.ones(shape=(qSize,))
+        #OneOverBeta = (1/beta) * np.ones(shape=(qSize,))
 
-        return np.sign(q) * np.maximum(np.abs(q) - OneOverBeta, np.zeros(shape=(qSize,)))
+        #return np.sign(q) * np.maximum(np.abs(q) - OneOverBeta, np.zeros(shape=(qSize,)))
+        return np.sign(q) * np.maximum(np.abs(q) - (1/beta), 0.0)
     
     def __proxStep__(self, x_k, y_k, l, beta):
 
@@ -80,8 +83,3 @@ class TVL2_1DClass(VariationalModelClass):
     def __lambdaStep__(self, x_k, y_k, l, beta):
 
         return l + beta * (self.D @ x_k - y_k)
-
-        
-
-
-

@@ -27,13 +27,13 @@ mu = 2
 VarModel = TVL2_1D.TVL2_1DClass(A, b, mu)
 
 xk = np.copy(b)
-yk = VarModel.D @ xk
+yk = np.random.randn(n - 1,)
 betak = 1
 lk = np.zeros(n - 1)
 
 StdAdmmSolver = StdADMM.StdADMMClass(VarModel, xk, yk, lk, betak)
 
-iters = 200
+iters = 20
 
 
 for iter in range(0, iters):
