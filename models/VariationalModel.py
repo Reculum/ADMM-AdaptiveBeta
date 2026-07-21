@@ -41,8 +41,5 @@ class VariationalModelClass():
     
     def setDualStep(self, f):
         self.dualStep = f
-    
-    def __eval__(self, x):        
-        return self.regularizer(x) + (self.mu / 2) * self.fidelity(x)
         
     

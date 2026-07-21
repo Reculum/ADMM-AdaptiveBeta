@@ -138,7 +138,7 @@ class My_Lipschitz_SolverClass(SolverClass):
 
 		betaNegative = beta0
 		dfNegative = lambda z: self.dPhi(z) + (self.lk @ self.PQ) + self.betak * ( (self.PQ @ z - c) @ self.PQ ) \
-							+ betaNegative * (epsilon @ self.PQ)
+							   + betaNegative * (epsilon, self.PQ @ z - c)
 		
 		(Mink, IsResPositive) = self.__TrustRegionDescent__(x0, y0, epsilon, dfNegative)
 		
@@ -150,7 +150,7 @@ class My_Lipschitz_SolverClass(SolverClass):
 			
 			betaNegative *= 2
 			dfNegative = lambda z: self.dPhi(z) + (self.lk @ self.PQ) + self.betak * ( (self.PQ @ z - c) @ self.PQ ) \
-							+ betaNegative * (epsilon @ self.PQ)
+							   + betaNegative * (epsilon, self.PQ @ z - c)
 						
 			(Mink, IsResPositive) = self.__TrustRegionDescent__(xMin, yMin, epsilon, dfNegative)
 			xMin, yMin = Mink[:self.VarModel.n], Mink[self.VarModel.n:]

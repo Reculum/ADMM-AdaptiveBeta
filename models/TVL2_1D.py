@@ -39,7 +39,7 @@ class TVL2_1DClass(VariationalModelClass):
         self.Atb = (self.A).T @ self.b
 
         fid = lambda x: np.linalg.norm( A @ x - b )**2
-        reg = lambda x: np.linalg.norm(self.D @ x, ord=1)
+        reg = lambda y: np.linalg.norm(y, ord=1)
         proxstep = lambda x, y, l, beta: self.__proxStep__(x, y, l, beta)
         dualstep = lambda x, y, l, beta: self.__lambdaStep__(x, y, l, beta)
 

@@ -1,5 +1,5 @@
 from models import TVL2_1D
-from ADMMs import MyTVL21DSolver
+from ADMMs import MyLipschitzSolver
 from signal_class import *
 
 np.random.seed(24102001)
@@ -7,6 +7,25 @@ np.random.seed(24102001)
 
 n = 1024
 
+#begin blur matrix construction
+a = 0.25
+b = 0.5
+c = 0.25
+
+diag = b * np.ones(shape=(n,))
+offDiag = a * np.ones(shape=(n - 1, ))
+A = np.diag(diag, 0) + np.diag(offDiag, 1) + np.diag(offDiag, -1)
+
+#apply anti-reflexive BCs
+A[0][0] = 2 * a + b
+A[0][1] = c - a
+A[n-2][n-1] = a - c
+A[n-1][n-1] = b + 2 * c
+
+#end of blur matrix const
+
+
+#begin signal construction
 PwSignal = signal(n)
 RndSignal = signal(n)
 sigma = 0.01
@@ -14,25 +33,29 @@ sigma = 0.01
 PwSignal.generate_cartoon_sign(2, 100)
 RndSignal.generate_GG_realization(0, sigma, 2)
 
-diag = 0.5 * np.ones(shape=(n,))
-offDiag = 0.25 * np.ones(shape=(n - 1, ))
-A = np.diag(diag, 0) + np.diag(offDiag, 1) + np.diag(offDiag, -1)
-
-
 xTrue = PwSignal.get_image()
 b = (A @ xTrue) + RndSignal.get_image()
-mu = 2
+#end of signal construction
 
+#begin model construction
+
+mu = 2
 VarModel = TVL2_1D.TVL2_1DClass(A, b, mu)
 
 xk = np.copy(b)
-yk = np.random.randn(n - 1,)
+yk = np.random.randn(n,)
 betak = 1
-lk = np.zeros(n - 1)
+lk = np.zeros(shape=(n,))
 
-MySolver = MyTVL21DSolver.My_TVL21D_SolverClass(VarModel, xk, yk, lk, betak)
+def dPhi(z):
+	x, y = z[:VarModel.n], z[VarModel.n:]
+	dx = mu * (A @ x - b) @ A
+	dy = np.sign(y)
+	return np.hstack([dx, dy])
 
-iters = 1
+MySolver = MyLipschitzSolver.My_Lipschitz_SolverClass(VarModel, xk, yk, lk, betak, 1, 10, dPhi)
+
+iters = 10
 
 for iter in range(0, iters):
 
