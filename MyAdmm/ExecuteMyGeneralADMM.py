@@ -1,5 +1,5 @@
 import numpy as np
-from LanzaModels import TVL2_1D
+from LanzaModels import TVL1_1D
 from ADMMsRustici import MyBackTrackingSolver
 from signalClass import *
 
@@ -46,7 +46,7 @@ xCorrupted = (A @ xTrue) + RndSignal.get_image()
 #begin model construction
 
 mu = 2
-VarModel = TVL2_1D.TVL2_1DClass(A, xCorrupted, mu)
+VarModel = TVL1_1D.TVL1_1DClass(A, xCorrupted, mu)
 
 #end model construction
 
@@ -64,7 +64,7 @@ MySolver = MyBackTrackingSolver.MyBacktrackingSolverClass(VarModel, xk, yk, lk, 
 
 #resolution
 
-iters = 40
+iters = 1
 
 for iter in range(1, iters + 1):
 
