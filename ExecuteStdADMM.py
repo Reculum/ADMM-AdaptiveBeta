@@ -1,5 +1,5 @@
 
-from models import TVL2_1D
+from models import TVL1_1D
 from ADMMs import StdADMM
 from signal_class import *
 
@@ -24,12 +24,12 @@ xTrue = PwSignal.get_image()
 b = (A @ xTrue) + RndSignal.get_image()
 mu = 2
 
-VarModel = TVL2_1D.TVL2_1DClass(A, b, mu)
+VarModel = TVL1_1D.TVL1_1DClass(A, b, mu)
 
 xk = np.copy(b)
-yk = np.random.randn(n - 1,)
+yk = np.random.randn(n,)
 betak = 1
-lk = np.zeros(n - 1)
+lk = np.zeros(n)
 
 StdAdmmSolver = StdADMM.StdADMMClass(VarModel, xk, yk, lk, betak)
 

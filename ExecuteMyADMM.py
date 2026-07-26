@@ -64,7 +64,7 @@ MySolver = MyTVL21DSolver.My_TVL21D_SolverClass(VarModel, xk, yk, lk, betak)
 
 #resolution
 
-iters = 20
+iters = 5
 
 for iter in range(0, iters):
 

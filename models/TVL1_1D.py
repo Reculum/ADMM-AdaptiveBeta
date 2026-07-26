@@ -5,7 +5,7 @@ import cvxpy as cv
 class TVL1_1DClass(VariationalModelClass):
 
     #L(x, y, l)_{beta} = phi(x, y) + <l, (D, -Id) @ (x, y)> + beta/2 | (D, -Id) @ (x, y)|^{2}
-    #phi(x, y) = (mu / 2) * |A @ x - b|_{2}^{2} + |y|_{1} 
+    #phi(x, y) = (mu / 2) * |A @ x - b|_{1} + |y|_{1} 
 
     #n is the dimension of D in M: n x n
     #we applied anti-reflexive BCs
@@ -13,9 +13,6 @@ class TVL1_1DClass(VariationalModelClass):
     D : np.ndarray
     A : np.ndarray
     b : np.ndarray
-    AtA : np.ndarray
-    DtD : np.ndarray
-    Atb : np.ndarray 
 
     def __init__(self, A, b, mu):
 
@@ -33,9 +30,6 @@ class TVL1_1DClass(VariationalModelClass):
         self.setYmatrixConstr(-np.eye(self.n))
         self.setConstrObj(np.zeros(shape=(self.n,)))
 
-        self.DtD = (self.D).T @ self.D
-        self.AtA = (self.A).T @ self.A
-        self.Atb = (self.A).T @ self.b
 
         fid = lambda x: np.linalg.norm( A @ x - b, ord = 1)
         reg = lambda y: np.linalg.norm(y, ord = 1)
@@ -53,7 +47,7 @@ class TVL1_1DClass(VariationalModelClass):
     def __proX__(self, y, l, beta):
 
         x = cv.Variable(self.n)
-        objective = cv.Minimize((self.mu / 2) * cv.norm1(self.A @ x - self.c) +
+        objective = cv.Minimize((self.mu / 2) * cv.norm1(self.A @ x - self.b) +
                                 cv.scalar_product(l, self.D @ x - y) + 
                                 (beta/2) * cv.sum_squares(self.D @ x - y))
         prob = cv.Problem(objective)
@@ -65,11 +59,6 @@ class TVL1_1DClass(VariationalModelClass):
     def __proY__(self, x, l, beta):
 
         q = (self.D @ x) + (1/beta) * l
-        qSize = np.size(q)
-        
-        #OneOverBeta = (1/beta) * np.ones(shape=(qSize,))
-
-        #return np.sign(q) * np.maximum(np.abs(q) - OneOverBeta, np.zeros(shape=(qSize,)))
         return np.sign(q) * np.maximum(np.abs(q) - (1/beta), 0.0)
     
     def __proxStep__(self, x_k, y_k, l, beta):
