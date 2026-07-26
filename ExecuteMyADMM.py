@@ -1,5 +1,5 @@
-from models import TVL2_1D
-from ADMMs import MyTVL21DSolver
+from LanzaModels import TVL2_1D
+from ADMMsRustici import MyTVL21DSolver
 from signal_class import *
 
 np.random.seed(24102001)

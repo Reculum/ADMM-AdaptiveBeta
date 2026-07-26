@@ -1,5 +1,5 @@
-from models import TVL2_1D
-from ADMMs import SpectralSolver
+from LanzaModels import TVL2_1D
+from ADMMsRustici import SpectralSolver
 from signal_class import *
 
 np.random.seed(24102001)

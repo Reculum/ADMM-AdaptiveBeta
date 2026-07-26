@@ -1,6 +1,6 @@
 
-from models import TVL2_1D
-from ADMMs import StdADMM
+from LanzaModels import TVL2_1D
+from ADMMsRustici import StdADMM
 from signal_class import *
 
 np.random.seed(24102001)

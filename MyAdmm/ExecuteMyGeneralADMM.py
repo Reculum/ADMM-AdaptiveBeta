@@ -1,6 +1,7 @@
-from models import TVL2_1D
-from ADMMs import MyBackTrackingSolver
-from signal_class import *
+import numpy as np
+from LanzaModels import TVL2_1D
+from ADMMsRustici import MyBackTrackingSolver
+from signalClass import *
 
 np.random.seed(24102001)
 
@@ -45,7 +46,6 @@ xCorrupted = (A @ xTrue) + RndSignal.get_image()
 #begin model construction
 
 mu = 2
-
 VarModel = TVL2_1D.TVL2_1DClass(A, xCorrupted, mu)
 
 #end model construction
