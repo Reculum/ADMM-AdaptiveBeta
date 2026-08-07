@@ -1,12 +1,10 @@
+from LanzaModels.VariationalModel import *
 
 
-from models.VariationalModel import *
-
-
-class TVL2_1DClass(VariationalModelClass):
+class TIK_1DClass(VariationalModelClass):
 
     #L(x, y, l)_{beta} = phi(x, y) + <l, (D, -Id) @ (x, y)> + beta/2 | (D, -Id) @ (x, y)|^{2}
-    #phi(x, y) = (mu / 2) * |A @ x - b|_{2}^{2} + |y|_{1} 
+    #phi(x, y) = (mu / 2) * |A @ x - b|_{2}^{2} + (1/2) * |y|_{2}^{2} 
 
     #n is the dimension of D in M: n x n
     #we applied anti-reflexive BCs
@@ -28,7 +26,7 @@ class TVL2_1DClass(VariationalModelClass):
         meno_uni = -1 * np.ones(shape=(self.n, ))
         self.D = np.diag(meno_uni, 0) + np.diag(uni, 1)
         self.D[self.n - 1][self.n - 1] = 1
-        self.D[self.n - 2][self.n - 1] = -1
+        self.D[self.n - 1][self.n - 2] = -1
 
         self.setXmatrixConstr(self.D)
         self.setYmatrixConstr(-np.eye(self.n))
@@ -39,7 +37,7 @@ class TVL2_1DClass(VariationalModelClass):
         self.Atb = (self.A).T @ self.b
 
         fid = lambda x: np.linalg.norm( A @ x - b )**2
-        reg = lambda y: np.linalg.norm(y, ord=1)
+        reg = lambda x: np.linalg.norm(self.D @ x, ord=2)
         proxstep = lambda x, y, l, beta: self.__proxStep__(x, y, l, beta)
         dualstep = lambda x, y, l, beta: self.__lambdaStep__(x, y, l, beta)
 
@@ -61,13 +59,7 @@ class TVL2_1DClass(VariationalModelClass):
         return la.cho_solve( (upper, lower), tempB )
 
     def __proY__(self, x, l, beta):
-
-        q = (self.D @ x) + (1/beta) * l
-        qSize = np.size(q)
-        
-        OneOverBeta = (1/beta) * np.ones(shape=(qSize,))
-
-        return np.sign(q) * np.maximum(np.abs(q) - OneOverBeta, np.zeros(shape=(qSize,)))
+        return (1 / (beta + 1)) * (beta * (self.D @ x) + l)
     
     def __proxStep__(self, x_k, y_k, l, beta):
 
@@ -80,6 +72,9 @@ class TVL2_1DClass(VariationalModelClass):
     def __lambdaStep__(self, x_k, y_k, l, beta):
 
         return l + beta * (self.D @ x_k - y_k)
+
+    def __call__(self, x):
+        return (self.mu/2) * self.fidelity(x) + self.regularizer(x)
 
         
 

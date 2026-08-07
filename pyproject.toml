@@ -1,0 +1,17 @@
+
+[project]
+name = "LanzaExperiments"
+version = "0.1.0"
+dependencies = [
+    "numpy",
+    "scipy",
+    "cvxpy"
+]
+
+[tool.setuptools]
+# Explicitly list single-file .py modules (omit the .py extension here)
+py-modules = ["signalClass"]
+
+[tool.setuptools.packages.find]
+# Explicitly list directory packages
+include = ["ADMMsRustici*", "LanzaModels*"]

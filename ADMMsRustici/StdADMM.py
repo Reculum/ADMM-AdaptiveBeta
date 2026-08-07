@@ -1,5 +1,5 @@
 
-from ADMMs.Solver import *
+from ADMMsRustici.Solver import *
 
 
 
