@@ -37,7 +37,7 @@ class MyBacktrackingSolverClass(SolverClass):
 			res = self.VarModel.P @ varX + self.VarModel.Q @ varY - self.VarModel.c
 			prodScal = np.dot(res, l)
 
-			return (self.VarModel.mu / 2) * fid + reg + prodScal + (beta / 2) * np.linalg.norm(res)**2
+			return self.VarModel(varX, varY) + prodScal + (beta / 2) * np.linalg.norm(res)**2
 
 
 	
@@ -47,12 +47,12 @@ class MyBacktrackingSolverClass(SolverClass):
 
 		L0 = self.__AugmLag__(x0, y0, l0, beta0)
 		R0 = L0 + (1/(2 * beta0)) * np.linalg.norm(l0)**2
-		Diam0 = (2/self.minSigma) * (np.sqrt(R0) * np.sqrt(2 / beta0) + np.linalg.norm(self.Varmodel.c) + (1/beta0) * np.linalg.norm(l0))
+		Diam0 = (2/self.minSigma) * (np.sqrt(R0) * np.sqrt(2 / beta0) + np.linalg.norm(self.VarModel.c) + (1/beta0) * np.linalg.norm(l0))
 
 		beta1 = beta0 + 1
 		L1 = self.__AugmLag__(x0, y0, l0, beta1)
 		R1 = L1 + (1/(2 * beta1)) * np.linalg.norm(l0)**2
-		Diam1 = (2/self.minSigma) * (np.sqrt(R1) * np.sqrt(2 / beta1) + np.linalg.norm(self.Varmodel.c) + (1/beta1) * np.linalg.norm(l0))
+		Diam1 = (2/self.minSigma) * (np.sqrt(R1) * np.sqrt(2 / beta1) + np.linalg.norm(self.VarModel.c) + (1/beta1) * np.linalg.norm(l0))
 
 		maxIter = 1000
 		PointFound = False
@@ -82,7 +82,7 @@ class MyBacktrackingSolverClass(SolverClass):
 			err1 = DualResNorm1 * Diam1
 
 			deltaL = np.abs(Lk1 - Lk0)
-			ERR = 2 * np.max(err0, err1)
+			ERR = 2 * np.max([err0, err1])
 
 			if (err0 <= beta0 * (deltaL - ERR)):
 				PointFound = True
@@ -171,6 +171,7 @@ class MyBacktrackingSolverClass(SolverClass):
 
 			ImgErr = Diamk * DualResNormk
 			print(f"ImgErr: {ImgErr}")
+			print(f"DualResNorm: {DualResNormk}")
 
 			xk = xk1
 			yk = yk1

@@ -76,5 +76,5 @@ class TVL1_1DClass(VariationalModelClass):
 
         return l + beta * (self.D @ x_k - y_k)
 
-    def __call__(self, x):
-        return (self.mu) * self.fidelity(x) + self.regularizer(x)
+    def __call__(self, x, y):
+        return (self.mu) * self.fidelity(x) + self.regularizer(y)
