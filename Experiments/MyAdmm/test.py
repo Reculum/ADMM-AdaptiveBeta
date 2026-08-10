@@ -68,7 +68,7 @@ MySolver = MyBackTrackingSolver.MyBacktrackingSolverClass(VarModel, xk, yk, lk, 
 
 #resolution
 
-iters = 1
+iters = 2
 
 for iter in range(1, iters + 1):
 
@@ -77,13 +77,6 @@ for iter in range(1, iters + 1):
 	print(f"iter: {iter}/{iters}")
 	print(f"betak: {betak_1}")
 	print(f"primal residue: {np.linalg.norm(VarModel.P @ xk_1 + VarModel.Q @ yk_1 - VarModel.c)}" )
-	print(f"dual residue: {
-						   np.abs(
-							   (VarModel.mu / 2) * (VarModel.fidelity(xk_1) - VarModel.fidelity(xk) ) + \
-							   VarModel.regularizer(yk_1) - VarModel.regularizer(yk)							
-								)
-						  }"
-		)
 
 	xk = xk_1
 	yk = yk_1
