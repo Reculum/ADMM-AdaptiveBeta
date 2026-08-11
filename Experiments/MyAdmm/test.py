@@ -3,10 +3,10 @@ from LanzaModels import TVL1_1D
 from ADMMsRustici import MyBackTrackingSolver
 from signalClass import *
 
-np.random.seed(24102001)
+np.random.seed(24102000)
 
 
-n = 1024
+n = 128
 
 #blur matrix construction
 
@@ -68,7 +68,7 @@ MySolver = MyBackTrackingSolver.MyBacktrackingSolverClass(VarModel, xk, yk, lk, 
 
 #resolution
 
-iters = 2
+iters = 10
 
 for iter in range(1, iters + 1):
 
