@@ -15,7 +15,7 @@ class MyBacktrackingSolverClass(SolverClass):
 		self.minSigma = np.min(np.linalg.svdvals(self.PQ))
 
 		self.residueConst = (self.Lphi / self.minSigma)
-		self.ro = 0.9
+		self.ro = 0.5
 
 
 	def __MyStep__(self, xk, yk, lk, betak):
@@ -24,7 +24,7 @@ class MyBacktrackingSolverClass(SolverClass):
 
 		xk1, yk1 = self.__MnonTangere__(xk, yk, lk, betak)
 		xk2, yk2, beta2 = self.__backtrackBeta__(xk1, yk1, betak)
-		lk1 = lk + beta2 * (self.VarModel.D @ xk1 - yk1)
+		lk1 = lk + beta2 * (self.VarModel.P @ xk1 + self.VarModel.Q @ yk1 - self.VarModel.c)
 
 		betak1 = (np.linalg.norm(lk1) + self.residueConst) / (self.ro * ResidueMin0)
 				
@@ -32,8 +32,8 @@ class MyBacktrackingSolverClass(SolverClass):
 
 	def __AugmLag__(self, varX, varY, l, beta):
 
-			fid = self.VarModel.fidelity(varX)
-			reg = self.VarModel.regularizer(varY)
+			# fid = self.VarModel.fidelity(varX)
+			# reg = self.VarModel.regularizer(varY)
 			res = self.VarModel.P @ varX + self.VarModel.Q @ varY - self.VarModel.c
 			prodScal = np.dot(res, l)
 
@@ -87,9 +87,17 @@ class MyBacktrackingSolverClass(SolverClass):
 			if (err0 <= beta0 * (deltaL - ERR)):
 				PointFound = True
 			else:
+
+				xk = xk1
+				yk = yk1
+
+				uk = uk1
+				vk = vk1
+
 				iter += 1
 
 
+		print(f"iter: {iter}")
 		return (xk1, yk1)
 	
 
@@ -98,13 +106,20 @@ class MyBacktrackingSolverClass(SolverClass):
 		maxIter = 1000
 		iter = 0
 		TolImgGap = 1e-3
+
+
 		l0 = self.lk
 		epsilon = self.VarModel.P @ x0 + self.VarModel.Q @ y0 - self.VarModel.c
 
-		theta = np.vstack([self.VarModel.P.T @ epsilon, self.VarModel.Q.T @ epsilon])
+
+		theta = np.hstack((self.VarModel.P.T @ epsilon, self.VarModel.Q.T @ epsilon))
 		PQtheta = self.VarModel.P @ ( (self.VarModel.P.T) @ epsilon) + \
 				  self.VarModel.Q @ ( (self.VarModel.Q.T) @ epsilon)
+
+		
 		normTheta = np.linalg.norm(theta)
+		tilde = 1 / (normTheta**2)
+		l0DotPQtheta = np.dot(l0, PQtheta)
 
 		xk = x0
 		yk = y0		
@@ -118,17 +133,16 @@ class MyBacktrackingSolverClass(SolverClass):
 
 			xk1, yk1 = self.VarModel.primalStep(xk, yk, lBeta, beta0)
 
-			rk1 = self.VarModel.P @ xk1 + self.VarModel.Q @ xk1 - self.VarModel.c
+			rk1 = self.VarModel.P @ xk1 + self.VarModel.Q @ yk1 - self.VarModel.c
 			resk1 = np.dot(epsilon, rk1)
 
-			delta = resk1 / (normTheta**2)
-			l0DotPQtheta = np.dot(l0, theta)
-			ErrRes = delta * (self.Lphi * normTheta + np.abs(l0DotPQtheta) + beta)
+			l0DotPQtheta = np.dot(l0, PQtheta)
+			ErrRes = np.abs(resk1) * ( tilde * (self.Lphi * normTheta + np.abs(l0DotPQtheta)) + beta)
+
+			betaLower = 0
+			betaUpper = np.inf
 
 			while (ErrRes >= (TolImgGap / 2)):
-
-				betaLower = 0
-				betaUpper = np.inf
 
 				#print("FindingBetaIter")
 
@@ -146,17 +160,15 @@ class MyBacktrackingSolverClass(SolverClass):
 
 				xk1, yk1 = self.VarModel.primalStep(xk, yk, lBeta, beta0)
 
-				rk1 = self.VarModel.P @ xk1 + self.VarModel.Q @ xk1 - self.VarModel.c
+				rk1 = self.VarModel.P @ xk1 + self.VarModel.Q @ yk1 - self.VarModel.c
 				resk1 = np.dot(epsilon, rk1)
 
 				#################################
 				#compute residue error
 
-				delta = resk1 / (normTheta**2)
-				l0DotPQtheta = np.dot(l0, theta)
-				ErrRes = delta * (self.Lphi * normTheta + np.abs(l0DotPQtheta) + beta)
+				ErrRes = np.abs(resk1) * ( tilde * (self.Lphi * normTheta + np.abs(l0DotPQtheta)) + beta)
 
-				print(f"ErrRes: {ErrRes}")
+				#print(f"ErrRes: {ErrRes}")
 
 
 			################################
@@ -164,7 +176,7 @@ class MyBacktrackingSolverClass(SolverClass):
 
 			Lk = self.__AugmLag__(xk, yk, lBeta, beta0)
 			Rk = Lk + (1/(2 * beta0)) * np.linalg.norm(lBeta)**2
-			Diamk = (2/self.minSigma) * (np.sqrt(Rk) * np.sqrt(2 / beta0) + np.linalg.norm(self.Varmodel.c) + (1/beta0) * np.linalg.norm(lBeta))
+			Diamk = (2/self.minSigma) * (np.sqrt(Rk) * np.sqrt(2 / beta0) + np.linalg.norm(self.VarModel.c) + (1/beta0) * np.linalg.norm(lBeta))
 
 			DualResk = beta0 * self.VarModel.P.T @ (self.VarModel.Q @ (yk1 - yk))
 			DualResNormk = np.linalg.norm(DualResk)

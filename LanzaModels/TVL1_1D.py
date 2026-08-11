@@ -31,7 +31,7 @@ class TVL1_1DClass(VariationalModelClass):
         self.setConstrObj(np.zeros(shape=(self.n,)))
 
         fid = lambda x: np.linalg.norm( A @ x - b, ord = 1)
-        reg = lambda x: np.linalg.norm(self.D @ x, ord = 1)
+        reg = lambda y: np.linalg.norm(y, ord = 1)
         proxstep = lambda x, y, l, beta: self.__proxStep__(x, y, l, beta)
         dualstep = lambda x, y, l, beta: self.__lambdaStep__(x, y, l, beta)
 
