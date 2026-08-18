@@ -23,12 +23,12 @@ class MyBacktrackingSolverClass(SolverClass):
 		ResidueMin0 = (1/betak) * (np.linalg.norm(lk) + self.residueConst)
 
 		xk1, yk1 = self.__MnonTangere__(xk, yk, lk, betak)
-		xk2, yk2, beta2 = self.__backtrackBeta__(xk1, yk1, betak)
+		xk2, yk2, beta2, dualResk = self.__backtrackBeta__(xk1, yk1, betak)
 		lk1 = lk + beta2 * (self.VarModel.P @ xk1 + self.VarModel.Q @ yk1 - self.VarModel.c)
 
 		betak1 = (np.linalg.norm(lk1) + self.residueConst) / (self.ro * ResidueMin0)
 				
-		return xk2, yk2, lk1, betak1
+		return xk2, yk2, lk1, betak1, dualResk
 
 	def __AugmLag__(self, varX, varY, l, beta):
 
@@ -81,8 +81,11 @@ class MyBacktrackingSolverClass(SolverClass):
 			err0 = DualResNorm0 * Diam0
 			err1 = DualResNorm1 * Diam1
 
-			deltaL = np.abs(Lk1 - Lk0)
-			ERR = 2 * np.max([err0, err1])
+			#deltaL = np.abs(Lk1 - Lk0)
+			deltaL = Lk1 - Lk0
+
+			#ERR = 2 * np.max([err0, err1])
+			ERR = err1
 
 			if (err0 <= beta0 * (deltaL - ERR)):
 				PointFound = True
@@ -97,15 +100,16 @@ class MyBacktrackingSolverClass(SolverClass):
 				iter += 1
 
 
-		print(f"iter: {iter}")
+		print(f"iter Mnon: {iter}")
+		print(f"delta L: {deltaL}")
 		return (xk1, yk1)
 	
 
-	def __backtrackBeta__(self, x0, y0, beta0):
+	def __backtrackBeta__(self, x0, y0, beta1):
 
-		maxIter = 1000
+		maxIter = 2000
 		iter = 0
-		TolImgGap = 1e-3
+		TolImgGap = 1e-6
 
 
 		l0 = self.lk
@@ -123,21 +127,22 @@ class MyBacktrackingSolverClass(SolverClass):
 
 		xk = x0
 		yk = y0		
-		
-		beta = beta0
+
+		beta2 = beta1
 		ImgErr = np.inf
 
 		while (ImgErr >= (TolImgGap / 2) and (iter <= maxIter)):			
 
-			lBeta = l0 + beta * epsilon
+			lBeta = l0 + beta2 * epsilon
 
-			xk1, yk1 = self.VarModel.primalStep(xk, yk, lBeta, beta0)
+			xk1, yk1 = self.VarModel.primalStep(xk, yk, lBeta, beta1)
+
 
 			rk1 = self.VarModel.P @ xk1 + self.VarModel.Q @ yk1 - self.VarModel.c
 			resk1 = np.dot(epsilon, rk1)
 
-			l0DotPQtheta = np.dot(l0, PQtheta)
-			ErrRes = np.abs(resk1) * ( tilde * (self.Lphi * normTheta + np.abs(l0DotPQtheta)) + beta)
+
+			ErrRes = np.abs(resk1) * ( tilde * (self.Lphi * normTheta + np.abs(l0DotPQtheta)) + beta2)
 
 			betaLower = 0
 			betaUpper = np.inf
@@ -147,18 +152,18 @@ class MyBacktrackingSolverClass(SolverClass):
 				#print("FindingBetaIter")
 
 				if (resk1 < 0):
-					betaUpper = beta
+					betaUpper = beta2
 				else:
-					betaLower = beta
+					betaLower = beta2
 
 				if (not(betaUpper == np.inf)):
-					beta = (betaUpper + betaLower)/2
+					beta2 = (betaUpper + betaLower)/2
 				else:
-					beta *= 2
+					beta2 *= 1.1
 
-				lBeta = l0 + beta * epsilon
+				lBeta = l0 + beta2 * epsilon
 
-				xk1, yk1 = self.VarModel.primalStep(xk, yk, lBeta, beta0)
+				xk1, yk1 = self.VarModel.primalStep(xk, yk, lBeta, beta1)
 
 				rk1 = self.VarModel.P @ xk1 + self.VarModel.Q @ yk1 - self.VarModel.c
 				resk1 = np.dot(epsilon, rk1)
@@ -166,32 +171,35 @@ class MyBacktrackingSolverClass(SolverClass):
 				#################################
 				#compute residue error
 
-				ErrRes = np.abs(resk1) * ( tilde * (self.Lphi * normTheta + np.abs(l0DotPQtheta)) + beta)
-
-				#print(f"ErrRes: {ErrRes}")
+				ErrRes = np.abs(resk1) * ( tilde * (self.Lphi * normTheta + np.abs(l0DotPQtheta)) + beta2)
 
 
 			################################
 			#compute image residue
 
-			Lk = self.__AugmLag__(xk, yk, lBeta, beta0)
-			Rk = Lk + (1/(2 * beta0)) * np.linalg.norm(lBeta)**2
-			Diamk = (2/self.minSigma) * (np.sqrt(Rk) * np.sqrt(2 / beta0) + np.linalg.norm(self.VarModel.c) + (1/beta0) * np.linalg.norm(lBeta))
+			Lk = self.__AugmLag__(xk, yk, lBeta, beta1)
+			Rk = Lk + (1/(2 * beta1)) * np.linalg.norm(lBeta)**2
+			Diamk = (2/self.minSigma) * (np.sqrt(Rk) * np.sqrt(2 / beta1) + np.linalg.norm(self.VarModel.c) + (1/beta1) * np.linalg.norm(lBeta))
 
-			DualResk = beta0 * self.VarModel.P.T @ (self.VarModel.Q @ (yk1 - yk))
+			DualResk = beta1 * self.VarModel.P.T @ (self.VarModel.Q @ (yk1 - yk))
 			DualResNormk = np.linalg.norm(DualResk)
 
-			ImgErr = Diamk * DualResNormk
-			print(f"ImgErr: {ImgErr}")
-			print(f"DualResNorm: {DualResNormk}")
+			ImgErr = max([Diamk, 1]) * DualResNormk
+			#ImgErr = Diamk * DualResNormk
+
+			#print(f"ImgErr: {ImgErr}")
+			#print(f"DualResNorm: {DualResNormk}")
 
 			xk = xk1
 			yk = yk1
 
 			iter += 1
 
+		print(f"iter Backtrack: {iter}")
+		print(f"DualRes: {DualResNormk}")
+		print(f"Diamk: {Diamk}")
 
-		return xk, yk, beta		
+		return xk, yk, beta2, DualResNormk		
 
 
 		

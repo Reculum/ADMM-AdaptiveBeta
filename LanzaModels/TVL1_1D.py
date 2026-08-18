@@ -52,9 +52,9 @@ class TVL1_1DClass(VariationalModelClass):
 
         prob = cv.Problem(objective)
         prob.solve(solver=cv.CLARABEL,
-                   tol_gap_abs=1e-11, 
-                   tol_gap_rel=1e-11, 
-                   tol_feas=1e-11)
+                   tol_gap_abs=1e-14, 
+                   tol_gap_rel=1e-14, 
+                   tol_feas=1e-14)
 
         return x.value            
         
